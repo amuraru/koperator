@@ -21,7 +21,7 @@ require (
 	github.com/pavel-v-chernykh/keystore-go/v4 v4.2.0
 	github.com/prometheus/common v0.32.1
 	github.com/stretchr/testify v1.7.0
-	go.uber.org/zap v1.19.1
+	go.uber.org/zap v1.21.0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/inf.v0 v0.9.1
 	gotest.tools v2.2.0+incompatible
