@@ -12,7 +12,7 @@ require (
 	github.com/banzaicloud/koperator/properties v0.1.0
 	github.com/envoyproxy/go-control-plane v0.10.1
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
-	github.com/go-logr/logr v0.4.0
+	github.com/go-logr/logr v1.2.3
 	github.com/imdario/mergo v0.3.12
 	github.com/jetstack/cert-manager v1.6.1
 	github.com/lestrrat-go/backoff v1.0.1
