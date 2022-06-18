@@ -8,7 +8,7 @@ require (
 	github.com/banzaicloud/istio-client-go v0.0.11
 	github.com/banzaicloud/istio-operator/pkg/apis v0.10.8
 	github.com/banzaicloud/k8s-objectmatcher v1.6.1
-	github.com/banzaicloud/koperator/api v0.0.0
+	github.com/banzaicloud/koperator/api v0.18.0
 	github.com/banzaicloud/koperator/properties v0.1.0
 	github.com/envoyproxy/go-control-plane v0.10.1
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
