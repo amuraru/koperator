@@ -10,8 +10,8 @@ require (
 	github.com/banzaicloud/istio-client-go v0.0.17
 	github.com/banzaicloud/istio-operator/api/v2 v2.13.5
 	github.com/banzaicloud/k8s-objectmatcher v1.8.0
-	github.com/banzaicloud/koperator/api v0.0.0
-	github.com/banzaicloud/koperator/properties v0.0.0
+	github.com/banzaicloud/koperator/api v0.20.0
+	github.com/banzaicloud/koperator/properties v0.4.0
 	github.com/cert-manager/cert-manager v1.9.1
 	github.com/cisco-open/cluster-registry-controller/api v0.2.3
 	github.com/envoyproxy/go-control-plane v0.10.3
@@ -30,7 +30,7 @@ require (
 	k8s.io/api v0.24.4
 	k8s.io/apiextensions-apiserver v0.24.4
 	k8s.io/apimachinery v0.24.4
-	k8s.io/client-go v0.24.4
+	k8s.io/client-go v1.5.2
 	sigs.k8s.io/controller-runtime v0.12.3
 )
 
