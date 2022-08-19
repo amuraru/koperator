@@ -186,6 +186,7 @@ update-go-deps:
 		cd $$dir; \
 		go mod tidy; \
 		for m in $$(go list -mod=readonly -m -f '{{ if and (not .Replace) (not .Indirect) (not .Main)}}{{.Path}}{{end}}' all); do \
+			echo Upgrading $$m; \
 			go get -d $$m; \
 		done; \
 		go mod tidy \
