@@ -97,8 +97,8 @@ func (_m *Client) DeleteAllOf(ctx context.Context, obj client.Object, opts ...cl
 }
 
 // Get provides a mock function with given fields: ctx, key, obj
-func (_m *Client) Get(ctx context.Context, key types.NamespacedName, obj client.Object) error {
-	ret := _m.Called(ctx, key, obj)
+func (_m *Client) Get(ctx context.Context, key types.NamespacedName, obj client.Object, opts ...client.GetOption) error {
+	ret := _m.Called(ctx, key, obj, opts)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, types.NamespacedName, client.Object) error); ok {
