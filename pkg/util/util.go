@@ -31,11 +31,11 @@ import (
 	"strings"
 	"time"
 
+	"dario.cat/mergo"
 	"emperror.dev/errors"
 	"github.com/Shopify/sarama"
 	clusterregv1alpha1 "github.com/cisco-open/cluster-registry-controller/api/v1alpha1"
 	"github.com/go-logr/logr"
-	"github.com/imdario/mergo"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	corev1 "k8s.io/api/core/v1"
@@ -539,7 +539,8 @@ func RetryOnError(backoff wait.Backoff, fn func() error, isRetryableError func(e
 			return false, err
 		}
 	})
-	if err == wait.ErrWaitTimeout {
+
+	if wait.Interrupted(err) {
 		err = lastErr
 	}
 	return err

@@ -35,6 +35,8 @@ import (
 	"os"
 	"strings"
 
+	"k8s.io/client-go/rest"
+
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 
 	istioclientv1beta1 "github.com/banzaicloud/istio-client-go/pkg/networking/v1beta1"
@@ -121,7 +123,10 @@ func main() {
 		for i := range namespaceList {
 			namespaceList[i] = strings.TrimSpace(namespaceList[i])
 		}
-		managerWatchCacheBuilder = cache.MultiNamespacedCacheBuilder(namespaceList)
+		managerWatchCacheBuilder = func(config *rest.Config, opts cache.Options) (cache.Cache, error) {
+			opts.Namespaces = namespaceList
+			return cache.New(config, opts)
+		}
 	}
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
