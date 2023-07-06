@@ -141,5 +141,5 @@ require (
 replace (
 	github.com/gogo/protobuf => github.com/waynz0r/protobuf v1.3.3-0.20210811122234-64636cae0910
 	github.com/golang/protobuf => github.com/luciferinlove/protobuf v0.0.0-20220913214010-c63936d75066
-	k8s.io/client-go => k8s.io/client-go v0.28.0-alpha.3
+	k8s.io/client-go => k8s.io/client-go v11.0.0+incompatible
 )
