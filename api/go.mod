@@ -6,7 +6,7 @@ require (
 	dario.cat/mergo v1.0.0
 	emperror.dev/errors v0.8.1
 	github.com/banzaicloud/istio-client-go v0.0.17
-	github.com/cert-manager/cert-manager v1.12.2
+	github.com/cert-manager/cert-manager v1.12.3
 	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.27.3
 	k8s.io/apimachinery v0.27.3

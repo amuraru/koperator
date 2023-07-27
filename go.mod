@@ -13,7 +13,7 @@ require (
 	github.com/banzaicloud/k8s-objectmatcher v1.8.0
 	github.com/banzaicloud/koperator/api v0.28.3
 	github.com/banzaicloud/koperator/properties v0.4.1
-	github.com/cert-manager/cert-manager v1.12.2
+	github.com/cert-manager/cert-manager v1.12.3
 	github.com/cisco-open/cluster-registry-controller/api v0.2.12
 	github.com/envoyproxy/go-control-plane v0.11.1
 	github.com/ghodss/yaml v1.0.1-0.20220118164431-d8423dcdf344

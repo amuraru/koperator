@@ -6,6 +6,8 @@ github.com/banzaicloud/istio-client-go v0.0.17 h1:wiplbM7FDiIHopujInAnin3zuovtVc
 github.com/banzaicloud/istio-client-go v0.0.17/go.mod h1:rpnEYYGHzisx8nARl2d30Oq38EeCX0/PPaxMaREfE9I=
 github.com/cert-manager/cert-manager v1.12.2 h1:lJ7Xn0VhmBA4uOZb5dlSZzepu38ez73okOqgE24x8YM=
 github.com/cert-manager/cert-manager v1.12.2/go.mod h1:ql0msU88JCcQSceN+PFjEY8U+AMe13y06vO2klJk8bs=
+github.com/cert-manager/cert-manager v1.12.3 h1:3gZkP7hHI2CjgX5qZ1Tm98YbHVXB2NGAZPVbOLb3AjU=
+github.com/cert-manager/cert-manager v1.12.3/go.mod h1:/RYHUvK9cxuU5dbRyhb7g6am9jCcZc8huF3AnADE+nA=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
