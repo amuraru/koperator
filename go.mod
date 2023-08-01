@@ -9,7 +9,7 @@ require (
 	github.com/Shopify/sarama v1.38.1
 	github.com/banzaicloud/go-cruise-control v0.6.0
 	github.com/banzaicloud/istio-client-go v0.0.17
-	github.com/banzaicloud/istio-operator/api/v2 v2.17.1
+	github.com/banzaicloud/istio-operator/api/v2 v2.17.2
 	github.com/banzaicloud/k8s-objectmatcher v1.8.0
 	github.com/banzaicloud/koperator/api v0.28.3
 	github.com/banzaicloud/koperator/properties v0.4.1
