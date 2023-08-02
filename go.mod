@@ -23,7 +23,7 @@ require (
 	github.com/pavlo-v-chernykh/keystore-go/v4 v4.4.1
 	github.com/prometheus/common v0.44.0
 	github.com/stretchr/testify v1.8.4
-	go.uber.org/zap v1.24.0
+	go.uber.org/zap v1.25.0
 	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/inf.v0 v0.9.1
