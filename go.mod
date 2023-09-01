@@ -20,7 +20,7 @@ require (
 	github.com/go-logr/logr v1.2.4
 	github.com/onsi/ginkgo/v2 v2.11.0
 	github.com/onsi/gomega v1.27.10
-	github.com/pavlo-v-chernykh/keystore-go/v4 v4.4.1
+	github.com/pavlo-v-chernykh/keystore-go/v4 v4.5.0
 	github.com/prometheus/common v0.44.0
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/zap v1.25.0
