@@ -6,7 +6,7 @@ require (
 	dario.cat/mergo v1.0.0
 	emperror.dev/errors v0.8.1
 	github.com/Masterminds/sprig/v3 v3.2.3
-	github.com/Shopify/sarama v0.0.0-00010101000000-000000000000
+	github.com/Shopify/sarama v1.42.1
 	github.com/banzaicloud/go-cruise-control v0.6.0
 	github.com/banzaicloud/istio-client-go v0.0.17
 	github.com/banzaicloud/istio-operator/api/v2 v2.17.2
