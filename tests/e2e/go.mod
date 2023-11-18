@@ -1,6 +1,6 @@
 module github.com/banzaicloud/koperator/tests/e2e
 
-go 1.19
+go 1.21
 
 require (
 	emperror.dev/errors v0.8.1
