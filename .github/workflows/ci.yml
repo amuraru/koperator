@@ -18,7 +18,7 @@ jobs:
           go-version: 1.21
 
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Check Go modules dependency file integrity
         run: |
@@ -54,7 +54,7 @@ jobs:
           go-version: 1.21
 
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: License cache
         uses: actions/cache@v3

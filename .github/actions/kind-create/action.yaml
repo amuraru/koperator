@@ -23,7 +23,7 @@ runs:
 
   steps:
   - name: Set up Docker Buildx
-    uses: docker/setup-buildx-action@v2
+    uses: docker/setup-buildx-action@v3
   - uses: engineerd/setup-kind@v0.5.0
     with:
       name: ${{ inputs.kind_cluster_name }}
