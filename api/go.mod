@@ -7,7 +7,7 @@ require (
 	emperror.dev/errors v0.8.1
 	github.com/banzaicloud/istio-client-go v0.0.17
 	github.com/cert-manager/cert-manager v1.13.2
-	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa
+	golang.org/x/exp v0.0.0-20240416160154-fe59bbe5cc7f
 	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.28.4
 	k8s.io/apimachinery v0.28.4
