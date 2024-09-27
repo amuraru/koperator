@@ -19,7 +19,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Cache Docker layers
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ github.ref }}
@@ -54,7 +54,7 @@ jobs:
           password: ${{ secrets.CR_PAT }}
 
       - name: Build koperator-performance-test-load
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           tags: ghcr.io/banzaicloud/koperator-performance-test-load:${{ steps.imagetag.outputs.value }}
           file: docs/benchmarks/loadgens/Dockerfile
