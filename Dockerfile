@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM --platform=${BUILDPLATFORM:-linux/amd64} golang:1.21 as builder
+FROM --platform=${BUILDPLATFORM:-linux/amd64} golang:1.21@sha256:4746d26432a9117a5f58e95cb9f954ddf0de128e9d5816886514199316e4a2fb as builder
 
 ARG BUILDPLATFORM
 ARG TARGETPLATFORM
@@ -28,7 +28,7 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH:-amd64} GO111MODUL
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM --platform=${TARGETPLATFORM:-linux/amd64} gcr.io/distroless/static-debian11:nonroot
+FROM --platform=${TARGETPLATFORM:-linux/amd64} gcr.io/distroless/static-debian11:nonroot@sha256:63ebe035fbdd056ed682e6a87b286d07d3f05f12cb46f26b2b44fc10fc4a59ed
 WORKDIR /
 COPY --from=builder /workspace/manager .
 ENTRYPOINT ["/manager"]
