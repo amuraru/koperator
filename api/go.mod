@@ -1,13 +1,15 @@
 module github.com/banzaicloud/koperator/api
 
-go 1.21
+go 1.23.0
+
+toolchain go1.24.0
 
 require (
 	dario.cat/mergo v1.0.0
 	emperror.dev/errors v0.8.1
 	github.com/banzaicloud/istio-client-go v0.0.17
 	github.com/cert-manager/cert-manager v1.13.2
-	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa
+	golang.org/x/exp v0.0.0-20250218142911-aa4b98e5adaa
 	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.28.4
 	k8s.io/apimachinery v0.28.4
@@ -17,7 +19,7 @@ require (
 require (
 	github.com/go-logr/logr v1.3.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/google/go-cmp v0.5.9 // indirect
+	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
