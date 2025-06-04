@@ -19,6 +19,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
 
 	corev1 "k8s.io/api/core/v1"
@@ -435,15 +436,131 @@ func TestGetBrokerLabels(t *testing.T) {
 
 		expectedBrokerId = 0
 	)
+	testCases := []struct {
+		testName       string
+		brokerConfig   *BrokerConfig
+		expectedLabels map[string]string
+		kRaftMode      bool
+	}{
+		{
+			testName: "Labels in zookeeper mode",
+			expectedLabels: map[string]string{
+				AppLabelKey:         expectedDefaultLabelApp,
+				BrokerIdLabelKey:    strconv.Itoa(expectedBrokerId),
+				KafkaCRLabelKey:     expectedKafkaCRName,
+				IsBrokerNodeKey:     "true",
+				IsControllerNodeKey: "false",
+				"test_label_key":    "test_label_value",
+			},
+			brokerConfig: &BrokerConfig{
+				Roles: nil,
+				BrokerLabels: map[string]string{
+					AppLabelKey:      "test_app",
+					BrokerIdLabelKey: "test_id",
+					KafkaCRLabelKey:  "test_cr_name",
+					"test_label_key": "test_label_value",
+				},
+			},
+			kRaftMode: false,
+		},
+		{
+			testName: "Labels for broker in kraft mode",
+			expectedLabels: map[string]string{
+				AppLabelKey:         expectedDefaultLabelApp,
+				BrokerIdLabelKey:    strconv.Itoa(expectedBrokerId),
+				KafkaCRLabelKey:     expectedKafkaCRName,
+				"test_label_key":    "test_label_value",
+				ProcessRolesKey:     "broker",
+				IsBrokerNodeKey:     "true",
+				IsControllerNodeKey: "false",
+			},
+			brokerConfig: &BrokerConfig{
+				Roles: []string{"broker"},
+				BrokerLabels: map[string]string{
+					AppLabelKey:      "test_app",
+					BrokerIdLabelKey: "test_id",
+					KafkaCRLabelKey:  "test_cr_name",
+					"test_label_key": "test_label_value",
+				},
+			},
+			kRaftMode: true,
+		},
+		{
+			testName: "Labels for controller in kraft mode",
+			expectedLabels: map[string]string{
+				AppLabelKey:         expectedDefaultLabelApp,
+				BrokerIdLabelKey:    strconv.Itoa(expectedBrokerId),
+				KafkaCRLabelKey:     expectedKafkaCRName,
+				"test_label_key":    "test_label_value",
+				ProcessRolesKey:     "controller",
+				IsBrokerNodeKey:     "false",
+				IsControllerNodeKey: "true",
+			},
+			brokerConfig: &BrokerConfig{
+				Roles: []string{"controller"},
+				BrokerLabels: map[string]string{
+					AppLabelKey:      "test_app",
+					BrokerIdLabelKey: "test_id",
+					KafkaCRLabelKey:  "test_cr_name",
+					"test_label_key": "test_label_value",
+				},
+			},
+			kRaftMode: true,
+		},
+		{
+			testName: "Labels for controller/broker in kraft mode",
+			expectedLabels: map[string]string{
+				AppLabelKey:         expectedDefaultLabelApp,
+				BrokerIdLabelKey:    strconv.Itoa(expectedBrokerId),
+				KafkaCRLabelKey:     expectedKafkaCRName,
+				"test_label_key":    "test_label_value",
+				ProcessRolesKey:     "controller_broker",
+				IsBrokerNodeKey:     "true",
+				IsControllerNodeKey: "true",
+			},
+			brokerConfig: &BrokerConfig{
+				Roles: []string{"controller", "broker"},
+				BrokerLabels: map[string]string{
+					AppLabelKey:      "test_app",
+					BrokerIdLabelKey: "test_id",
+					KafkaCRLabelKey:  "test_cr_name",
+					"test_label_key": "test_label_value",
+				},
+			},
+			kRaftMode: true,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.testName, func(t *testing.T) {
+			result := test.brokerConfig.GetBrokerLabels(expectedKafkaCRName, expectedBrokerId, test.kRaftMode)
+			if !reflect.DeepEqual(result, test.expectedLabels) {
+				t.Error("Expected:", test.expectedLabels, "Got:", result)
+			}
+		})
+	}
+}
+
+func TestGetBrokerLabelKraft(t *testing.T) {
+	const (
+		expectedDefaultLabelApp = "kafka"
+		expectedKafkaCRName     = "kafka"
+
+		expectedBrokerId = 0
+	)
 
 	expected := map[string]string{
-		AppLabelKey:      expectedDefaultLabelApp,
-		BrokerIdLabelKey: strconv.Itoa(expectedBrokerId),
-		KafkaCRLabelKey:  expectedKafkaCRName,
-		"test_label_key": "test_label_value",
+		AppLabelKey:         expectedDefaultLabelApp,
+		BrokerIdLabelKey:    strconv.Itoa(expectedBrokerId),
+		KafkaCRLabelKey:     expectedKafkaCRName,
+		"test_label_key":    "test_label_value",
+		ProcessRolesKey:     "broker",
+		IsBrokerNodeKey:     "true",
+		IsControllerNodeKey: "false",
 	}
 
 	brokerConfig := &BrokerConfig{
+		Roles: []string{"broker"},
 		BrokerLabels: map[string]string{
 			AppLabelKey:      "test_app",
 			BrokerIdLabelKey: "test_id",
@@ -452,9 +569,225 @@ func TestGetBrokerLabels(t *testing.T) {
 		},
 	}
 
-	result := brokerConfig.GetBrokerLabels(expectedKafkaCRName, expectedBrokerId)
+	result := brokerConfig.GetBrokerLabels(expectedKafkaCRName, expectedBrokerId, true)
 
 	if !reflect.DeepEqual(result, expected) {
 		t.Error("Expected:", expected, "Got:", result)
+	}
+}
+
+func TestGetStorageMountPaths(t *testing.T) {
+	testCases := []struct {
+		testName           string
+		brokerConfig       *BrokerConfig
+		expectedMountPaths string
+	}{
+		{
+			testName:           "BrokerConfig has no StorageConfigs",
+			brokerConfig:       &BrokerConfig{},
+			expectedMountPaths: "",
+		},
+		{
+			testName: "BrokerConfig has one storage configuration under StorageConfigs",
+			brokerConfig: &BrokerConfig{
+				StorageConfigs: []StorageConfig{
+					{
+						MountPath: "test-log-1",
+					},
+				},
+			},
+			expectedMountPaths: "test-log-1",
+		},
+		{
+			testName: "BrokerConfig has multiple storage configuration under StorageConfigs",
+			brokerConfig: &BrokerConfig{
+				StorageConfigs: []StorageConfig{
+					{
+						MountPath: "test-log-1",
+					},
+					{
+						MountPath: "test-log-2",
+					},
+					{
+						MountPath: "test-log-3",
+					},
+					{
+						MountPath: "test-log-4",
+					},
+					{
+						MountPath: "test-log-5",
+					},
+				},
+			},
+			expectedMountPaths: "test-log-1,test-log-2,test-log-3,test-log-4,test-log-5",
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.testName, func(t *testing.T) {
+			gotMountPaths := test.brokerConfig.GetStorageMountPaths()
+			require.Equal(t, gotMountPaths, test.expectedMountPaths)
+		})
+	}
+}
+
+func TestIsBrokerOnlyNode(t *testing.T) {
+	testCases := []struct {
+		testName     string
+		broker       Broker
+		isBrokerOnly bool
+	}{
+		{
+			testName: "the broker is a broker-only node",
+			broker: Broker{
+				Id: 0,
+				BrokerConfig: &BrokerConfig{
+					Roles: []string{"broker"},
+				},
+			},
+			isBrokerOnly: true,
+		},
+		{
+			testName: "the broker is a controller-only node",
+			broker: Broker{
+				Id: 0,
+				BrokerConfig: &BrokerConfig{
+					Roles: []string{"controller"},
+				},
+			},
+			isBrokerOnly: false,
+		},
+		{
+			testName: "the broker is a combined node",
+			broker: Broker{
+				Id: 0,
+				BrokerConfig: &BrokerConfig{
+					Roles: []string{"controller", "broker"},
+				},
+			},
+			isBrokerOnly: false,
+		},
+		{
+			testName: "the broker has no process roles defined",
+			broker: Broker{
+				Id:           0,
+				BrokerConfig: &BrokerConfig{},
+			},
+			isBrokerOnly: false,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.testName, func(t *testing.T) {
+			require.Equal(t, test.broker.BrokerConfig.IsBrokerOnlyNode(), test.isBrokerOnly)
+		})
+	}
+}
+
+func TestIsControllerOnlyNode(t *testing.T) {
+	testCases := []struct {
+		testName         string
+		broker           Broker
+		isControllerOnly bool
+	}{
+		{
+			testName: "the broker is a controller-only node",
+			broker: Broker{
+				Id: 0,
+				BrokerConfig: &BrokerConfig{
+					Roles: []string{"controller"},
+				},
+			},
+			isControllerOnly: true,
+		},
+		{
+			testName: "the broker is a broker-only node",
+			broker: Broker{
+				Id: 0,
+				BrokerConfig: &BrokerConfig{
+					Roles: []string{"broker"},
+				},
+			},
+			isControllerOnly: false,
+		},
+		{
+			testName: "the broker is a combined node",
+			broker: Broker{
+				Id: 0,
+				BrokerConfig: &BrokerConfig{
+					Roles: []string{"broker", "controller"},
+				},
+			},
+			isControllerOnly: false,
+		},
+		{
+			testName: "the broker has no process roles defined",
+			broker: Broker{
+				Id: 0,
+				// every broker is expected to have the broker configurations set through either "brokerConfig" or "brokerConfigGroup"
+				// and this part is tested in other places, therefore setting "brokerConfig" to be empty for this unit test
+				BrokerConfig: &BrokerConfig{},
+			},
+			isControllerOnly: false,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.testName, func(t *testing.T) {
+			require.Equal(t, test.broker.BrokerConfig.IsControllerOnlyNode(), test.isControllerOnly)
+		})
+	}
+}
+
+func TestIsCombinedNode(t *testing.T) {
+	testCases := []struct {
+		testName   string
+		broker     Broker
+		isCombined bool
+	}{
+		{
+			testName: "the broker is a broker-only node",
+			broker: Broker{
+				Id: 0,
+				BrokerConfig: &BrokerConfig{
+					Roles: []string{"broker"},
+				},
+			},
+			isCombined: false,
+		},
+		{
+			testName: "the broker is a controller-only node",
+			broker: Broker{
+				Id: 0,
+				BrokerConfig: &BrokerConfig{
+					Roles: []string{"controller"},
+				},
+			},
+			isCombined: false,
+		},
+		{
+			testName: "the broker is a combined node",
+			broker: Broker{
+				Id: 0,
+				BrokerConfig: &BrokerConfig{
+					Roles: []string{"broker", "controller"},
+				},
+			},
+			isCombined: true,
+		},
+		{
+			testName: "the broker has no process roles defined",
+			broker: Broker{
+				Id:           0,
+				BrokerConfig: &BrokerConfig{},
+			},
+			isCombined: false,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.testName, func(t *testing.T) {
+			require.Equal(t, test.broker.BrokerConfig.IsCombinedNode(), test.isCombined)
+		})
 	}
 }

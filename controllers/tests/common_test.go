@@ -40,6 +40,7 @@ func createMinimalKafkaClusterCR(name, namespace string) *v1beta1.KafkaCluster {
 			Annotations: map[string]string{},
 		},
 		Spec: v1beta1.KafkaClusterSpec{
+			KRaftMode: false,
 			ListenersConfig: v1beta1.ListenersConfig{
 				ExternalListeners: []v1beta1.ExternalListenerConfig{
 					{
@@ -159,7 +160,6 @@ func waitForClusterRunningState(ctx context.Context, kafkaCluster *v1beta1.Kafka
 			}
 		}
 	}()
-
 	Eventually(ch, 240*time.Second, 50*time.Millisecond).Should(Receive())
 }
 
