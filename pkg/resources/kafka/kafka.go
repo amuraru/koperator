@@ -1164,58 +1164,27 @@ func (r *Reconciler) reconcileKafkaPvc(ctx context.Context, log logr.Logger, bro
 			return errorfactory.New(errorfactory.APIFailure{}, err, "getting resource failed", "kind", desiredType)
 		}
 
+		isController, err := r.isController(util.ConvertStringToInt32(brokerId))
+		if err != nil {
+			return errors.WrapIfWithDetails(err, "could not determine if broker is controller", "brokerId", brokerId)
+		}
+
+		if isController {
+			if len(desiredPvcs) != 1 {
+				return errors.New("controller broker can have only one volume")
+			}
+			// changing the controller's mount path leads to a new disk being added and the controller in an unrecoverable state
+			// due to the new disk not being initialized for kafka.  we want to avoid this situation.
+			if len(pvcList.Items) == 1 && pvcList.Items[0].Annotations["mountPath"] != desiredPvcs[0].Annotations["mountPath"] {
+				return errors.New("controller broker volume mount path cannot be changed")
+			}
+		}
+
 		// Handle disk removal
 		if len(pvcList.Items) > len(desiredPvcs) {
-			for _, pvc := range pvcList.Items {
-				foundInDesired := false
-				existingMountPath := pvc.Annotations["mountPath"]
-
-				for _, desiredPvc := range desiredPvcs {
-					desiredMountPath := desiredPvc.Annotations["mountPath"]
-
-					if existingMountPath == desiredMountPath {
-						foundInDesired = true
-						break
-					}
-				}
-
-				if foundInDesired {
-					continue
-				}
-
-				mountPathToRemove := existingMountPath
-				if brokerState, ok := r.KafkaCluster.Status.BrokersState[brokerId]; ok {
-					volumeStateStatus, found := brokerState.GracefulActionState.VolumeStates[mountPathToRemove]
-					if !found {
-						// If the state is not found, it means that the disk removal was done according to the disk removal succeeded branch
-						log.Info("Disk removal was completed, waiting for Rolling Upgrade to remove PVC", "brokerId", brokerId, "mountPath", mountPathToRemove)
-						continue
-					}
-
-					// Check the volume state
-					ccVolumeState := volumeStateStatus.CruiseControlVolumeState
-					switch {
-					case ccVolumeState.IsDiskRemovalSucceeded():
-						if err := r.Client.Delete(ctx, &pvc); err != nil {
-							return errorfactory.New(errorfactory.APIFailure{}, err, "deleting resource failed", "kind", desiredType)
-						}
-						log.Info("resource deleted")
-						err = k8sutil.DeleteVolumeStatus(r.Client, brokerId, mountPathToRemove, r.KafkaCluster, log)
-						if err != nil {
-							return errors.WrapIfWithDetails(err, "could not delete volume status for broker volume", "brokerId", brokerId, "mountPath", mountPathToRemove)
-						}
-					case ccVolumeState.IsDiskRemoval():
-						log.Info("Graceful disk removal is in progress", "brokerId", brokerId, "mountPath", mountPathToRemove)
-						waitForDiskRemovalToFinish = true
-					case ccVolumeState.IsDiskRebalance():
-						log.Info("Graceful disk rebalance is in progress, waiting to mark disk for removal", "brokerId", brokerId, "mountPath", mountPathToRemove)
-						waitForDiskRemovalToFinish = true
-					default:
-						brokerVolumesState[mountPathToRemove] = v1beta1.VolumeState{CruiseControlVolumeState: v1beta1.GracefulDiskRemovalRequired}
-						log.Info("Marked the volume for removal", "brokerId", brokerId, "mountPath", mountPathToRemove)
-						waitForDiskRemovalToFinish = true
-					}
-				}
+			waitForDiskRemovalToFinish, err = handleDiskRemoval(ctx, pvcList, desiredPvcs, r, brokerId, log, desiredType, brokerVolumesState)
+			if err != nil {
+				return err
 			}
 		}
 
@@ -1312,6 +1281,63 @@ func (r *Reconciler) reconcileKafkaPvc(ctx context.Context, log logr.Logger, bro
 	}
 
 	return nil
+}
+
+func handleDiskRemoval(ctx context.Context, pvcList *corev1.PersistentVolumeClaimList, desiredPvcs []*corev1.PersistentVolumeClaim,
+	r *Reconciler, brokerId string, log logr.Logger, desiredType reflect.Type, brokerVolumesState map[string]v1beta1.VolumeState) (bool, error) {
+	waitForDiskRemovalToFinish := false
+	for _, pvc := range pvcList.Items {
+		foundInDesired := false
+		existingMountPath := pvc.Annotations["mountPath"]
+
+		for _, desiredPvc := range desiredPvcs {
+			desiredMountPath := desiredPvc.Annotations["mountPath"]
+
+			if existingMountPath == desiredMountPath {
+				foundInDesired = true
+				break
+			}
+		}
+
+		if foundInDesired {
+			continue
+		}
+
+		mountPathToRemove := existingMountPath
+		if brokerState, ok := r.KafkaCluster.Status.BrokersState[brokerId]; ok {
+			volumeStateStatus, found := brokerState.GracefulActionState.VolumeStates[mountPathToRemove]
+			if !found {
+				// If the state is not found, it means that the disk removal was done according to the disk removal succeeded branch
+				log.Info("Disk removal was completed, waiting for Rolling Upgrade to remove PVC", "brokerId", brokerId, "mountPath", mountPathToRemove)
+				continue
+			}
+
+			// Check the volume state
+			ccVolumeState := volumeStateStatus.CruiseControlVolumeState
+			switch {
+			case ccVolumeState.IsDiskRemovalSucceeded():
+				if err := r.Client.Delete(ctx, &pvc); err != nil {
+					return false, errorfactory.New(errorfactory.APIFailure{}, err, "deleting resource failed", "kind", desiredType)
+				}
+				log.Info("resource deleted")
+				err := k8sutil.DeleteVolumeStatus(r.Client, brokerId, mountPathToRemove, r.KafkaCluster, log)
+				if err != nil {
+					return false, errors.WrapIfWithDetails(err, "could not delete volume status for broker volume", "brokerId", brokerId, "mountPath", mountPathToRemove)
+				}
+			case ccVolumeState.IsDiskRemoval():
+				log.Info("Graceful disk removal is in progress", "brokerId", brokerId, "mountPath", mountPathToRemove)
+				waitForDiskRemovalToFinish = true
+			case ccVolumeState.IsDiskRebalance():
+				log.Info("Graceful disk rebalance is in progress, waiting to mark disk for removal", "brokerId", brokerId, "mountPath", mountPathToRemove)
+				waitForDiskRemovalToFinish = true
+			default:
+				brokerVolumesState[mountPathToRemove] = v1beta1.VolumeState{CruiseControlVolumeState: v1beta1.GracefulDiskRemovalRequired}
+				log.Info("Marked the volume for removal", "brokerId", brokerId, "mountPath", mountPathToRemove)
+				waitForDiskRemovalToFinish = true
+			}
+		}
+	}
+	return waitForDiskRemovalToFinish, nil
 }
 
 // GetBrokersWithPendingOrRunningCCTask returns list of brokers that are either waiting for CC
@@ -1731,4 +1757,17 @@ func generateServicePortForAdditionalPorts(containerPorts []corev1.ContainerPort
 		})
 	}
 	return usedPorts
+}
+
+func (r *Reconciler) isController(brokerId int32) (bool, error) {
+	for _, broker := range r.KafkaCluster.Spec.Brokers {
+		if broker.Id == brokerId {
+			brokerConfig, err := broker.GetBrokerConfig(r.KafkaCluster.Spec)
+			if err != nil {
+				return false, errors.WrapIf(err, "failed to reconcile resource")
+			}
+			return brokerConfig.IsControllerNode(), nil
+		}
+	}
+	return false, errors.NewWithDetails("could not find broker in the spec", "brokerId", brokerId)
 }
