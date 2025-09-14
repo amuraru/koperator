@@ -1,0 +1,262 @@
+# To get started with Dependabot version updates, you'll need to specify which
+# package ecosystems to update and where the package manifests are located.
+# Please see the documentation for all configuration options:
+# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  # GitHub Actions dependencies (grouped into single PR)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      github-actions-dependencies:
+        patterns:
+          - "*"
+
+  # Tool versions tracking via Docker ecosystem (grouped into single PR)
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "09:00"
+      timezone: "UTC"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      docker-dependencies:
+        patterns:
+          - "*"
+
+
+  # =============================================================================
+  # GO MODULES CONFIGURATION WITH GROUPING
+  # =============================================================================
+  # Using groups to combine all Go module updates into fewer PRs.
+  # Note: Groups work within each package-ecosystem entry, so we separate:
+  # - Main modules (root, api, properties, tests/e2e)
+  # - Third-party modules (all third_party/* directories)
+  #
+  # Current go.mod files detected:
+  # - / (root)
+  # - /api
+  # - /properties
+  # - /tests/e2e
+  # - /third_party/github.com/banzaicloud/operator-tools
+  # - /third_party/github.com/banzaicloud/k8s-objectmatcher
+  # - /third_party/github.com/banzaicloud/k8s-objectmatcher/tests
+  # - /third_party/github.com/banzaicloud/istio-operator
+  # - /third_party/github.com/banzaicloud/istio-operator/api
+  # - /third_party/github.com/banzaicloud/istio-client-go
+  # - /third_party/github.com/banzaicloud/go-cruise-control
+  # - /third_party/github.com/banzaicloud/go-cruise-control/integration_test
+  # =============================================================================
+
+  # Main Go modules (grouped into single PR)
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+      timezone: "UTC"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      main-go-dependencies:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "gomod"
+    directory: "/api"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+      timezone: "UTC"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      main-go-dependencies:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "gomod"
+    directory: "/properties"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+      timezone: "UTC"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      main-go-dependencies:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "gomod"
+    directory: "/tests/e2e"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+      timezone: "UTC"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      main-go-dependencies:
+        patterns:
+          - "*"
+
+  # Third-party Go modules (grouped into single PR)
+  - package-ecosystem: "gomod"
+    directory: "/third_party/github.com/banzaicloud/operator-tools"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "10:00"
+      timezone: "UTC"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      third-party-go-dependencies:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "gomod"
+    directory: "/third_party/github.com/banzaicloud/k8s-objectmatcher"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "10:00"
+      timezone: "UTC"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      third-party-go-dependencies:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "gomod"
+    directory: "/third_party/github.com/banzaicloud/k8s-objectmatcher/tests"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "10:00"
+      timezone: "UTC"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      third-party-go-dependencies:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "gomod"
+    directory: "/third_party/github.com/banzaicloud/istio-operator"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "10:00"
+      timezone: "UTC"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      third-party-go-dependencies:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "gomod"
+    directory: "/third_party/github.com/banzaicloud/istio-operator/api"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "10:00"
+      timezone: "UTC"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      third-party-go-dependencies:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "gomod"
+    directory: "/third_party/github.com/banzaicloud/istio-client-go"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "10:00"
+      timezone: "UTC"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      third-party-go-dependencies:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "gomod"
+    directory: "/third_party/github.com/banzaicloud/go-cruise-control"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "10:00"
+      timezone: "UTC"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      third-party-go-dependencies:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "gomod"
+    directory: "/third_party/github.com/banzaicloud/go-cruise-control/integration_test"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "10:00"
+      timezone: "UTC"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      third-party-go-dependencies:
+        patterns:
+          - "*"
+
+  # =============================================================================
+  # TO ADD NEW GO MODULE DIRECTORIES:
+  # Copy the template below, uncomment, and update the directory and time:
+  # =============================================================================
+  # - package-ecosystem: "gomod"
+  #   directory: "/your-new-directory"
+  #   schedule:
+  #     interval: "weekly"
+  #     day: "tuesday"
+  #     time: "17:00"  # Use next available hour
+  #     timezone: "UTC"
+  #   commit-message:
+  #     prefix: "chore"
+  #     include: "scope"
+
+
+
