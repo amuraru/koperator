@@ -8,7 +8,6 @@
     ":semanticPrefixFixDepsChoreOthers",
     ":updateNotScheduled",
     ":automergeDisabled",
-    ":ignoreModulesAndTests",
     "helpers:disableTypesNodeMajor",
     ":prHourlyLimitNone",
     ":prConcurrentLimitNone",
@@ -18,6 +17,19 @@
   "postUpdateOptions": [
     "gomodTidy",
     "gomodUpdateImportPaths"
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/Makefile/"
+      ],
+      "matchStrings": [
+        "(?<depName>\\w+)_VERSION\\s*=\\s*(?<currentValue>[^\\s]+)\\s*#\\s*renovate:\\s*datasource=(?<datasource>[^\\s]+)\\s*depName=(?<packageName>[^\\s]+)"
+      ],
+      "datasourceTemplate": "{{datasource}}",
+      "depNameTemplate": "{{packageName}}"
+    }
   ],
   "packageRules": [
     {
@@ -32,8 +44,14 @@
       "matchUpdateTypes": [
         "major"
       ],
-      "matchPackageNames": [
-        "*"
+      "matchManagers": [
+        "gomod",
+        "github-actions",
+        "maven",
+        "dockerfile",
+        "docker-compose",
+        "custom.regex",
+        "helm-values"
       ]
     },
     {
@@ -44,8 +62,15 @@
         "patch",
         "digest"
       ],
-      "matchPackageNames": [
-        "*"
+      "matchManagers": [
+        "gomod",
+        "github-actions",
+        "maven",
+        "dockerfile",
+        "docker-compose",
+        "custom.regex",
+        "helm-values",
+        "docker"
       ]
     }
   ]
