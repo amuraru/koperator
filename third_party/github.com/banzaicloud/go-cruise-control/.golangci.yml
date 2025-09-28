@@ -1,123 +1,135 @@
-run:
-  timeout: 5m
-  deadline: 2m
-
-output:
-  format: "checkstyle:report.xml,json:report.json,colored-line-number,github-actions"
-
+version: "2"
 linters:
-  disable-all: true
+  default: none
   enable:
-    - asasalint
-    - asciicheck
-    - bidichk
     - bodyclose
-    - containedctx
-    - contextcheck
-    - cyclop
-    - decorder
-    - depguard
     - dogsled
-#    - dupl
-    - dupword
-    - durationcheck
-    - errname
-    - errchkjson
     - errcheck
-    - errorlint
     - exhaustive
-#    - exhaustruct # FIXME(chrisgacsal)
-    - exportloopref
-    - forbidigo
-    - forcetypeassert
     - funlen
-    - gci
-    - ginkgolinter
-    - gocheckcompilerdirectives
-    - gochecknoglobals
-    - gochecknoinits
-    - gocognit
     - goconst
     - gocritic
     - gocyclo
-    - goerr113
-    - gofmt
-    - gofumpt
     - goheader
-    - goimports
-    - gomnd
-    - gomoddirectives
     - goprintffuncname
-    - gosec
-    - gosimple
     - govet
-    - importas
     - ineffassign
-    - ireturn
     - lll
-    - loggercheck
-    - maintidx
-    - makezero
     - misspell
-    - musttag
     - nakedret
-    - nestif
-    - nilerr
-    - nilnil
-#    - nlreturn # FIXME(chrisgacsal)
-    - noctx
-#    - nolintlint
-    - nonamedreturns
-    - prealloc
-    - predeclared
     - reassign
-    - revive
+    - rowserrcheck
     - staticcheck
-    - stylecheck
-    - typecheck
     - unconvert
     - unparam
     - unused
-    - usestdlibvars
     - whitespace
-    - wrapcheck
+  settings:
+    depguard:
+      rules:
+        main:
+          files:
+            - $all
+          deny:
+            - pkg: forbiddenpackage
+              desc: Please don't use forbiddenpackage package
+    dogsled:
+      max-blank-identifiers: 3
+    funlen:
+      lines: 323
+      statements: 100
+    gocritic:
+      disabled-checks:
+        - commentFormatting
+    gocyclo:
+      min-complexity: 38
+    goheader:
+      values:
+        const:
+          COMPANY: Cisco Systems, Inc. and/or its affiliates
+          ADOBE_COMPANY: Adobe. All rights reserved.
+        regexp:
+          COPYRIGHT: (Copyright|Copyright ©)
+          YEAR: 20[0-9]{2}
+          CISCO_LINE: 'Copyright(?: ©)? 20[0-9]{2} Cisco Systems, Inc\. and/or its affiliates'
+          ADOBE_LINE: 'Copyright(?: ©)? 20[0-9]{2} Adobe\. All rights reserved\.'
+      template: |-
+        {{ if .CISCO_LINE }}{{ CISCO_LINE }}{{ end }}{{ if and .CISCO_LINE .ADOBE_LINE }}
+        {{ end }}{{ if .ADOBE_LINE }}{{ ADOBE_LINE }}{{ end }}
 
-linters-settings:
-  cyclop:
-    max-complexity: 25
-  gci:
-    sections:
-      - standard
-      - default
-      - prefix(github.com/banzaicloud)
-      - blank
-      - dot
-  goheader:
-    values:
-      const:
-        COMPANY: Cisco
-    template: |-
-      Copyright © 2021 {{ COMPANY }} and/or its affiliates. All rights reserved.
+        Licensed under the Apache License, Version 2.0 (the "License");
+        you may not use this file except in compliance with the License.
+        You may obtain a copy of the License at
 
-      Licensed under the Apache License, Version 2.0 (the "License");
-      you may not use this file except in compliance with the License.
-      You may obtain a copy of the License at
+            http://www.apache.org/licenses/LICENSE-2.0
 
-          http://www.apache.org/licenses/LICENSE-2.0
+        Unless required by applicable law or agreed to in writing, software
+        distributed under the License is distributed on an "AS IS" BASIS,
+        WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        See the License for the specific language governing permissions and
+        limitations under the License.
+    lll:
+      line-length: 300
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - goconst
+        path: (.+)_test\.go
+      - linters:
+          - unused
+        path: .*
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
 
-      Unless required by applicable law or agreed to in writing, software
-      distributed under the License is distributed on an "AS IS" BASIS,
-      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-      See the License for the specific language governing permissions and
-      limitations under the License.
-  funlen:
-    lines: 200      # default: 60
-    statements: 75  # default: 40
-  gocritic:
-    disabled-checks:
-      - commentFormatting
-  goimports:
-    local-prefixes: github.com/banzaicloud
-  lll:
-    line-length: 135
+# Preserve e2e-specific issue exclusions
+issues:
+  exclude-rules:
+    - path: zz_generated.deepcopy.go
+      linters:
+        - lll
+    - path: "(.+)_test.go"
+      linters:
+        - funlen
+        - goconst
+        - interfacer
+        - dupl
+        - lll
+        - gocritic
+    # Ignore unused across e2e helpers/tests
+    - path: ".*"
+      linters:
+        - unused
+    - linters:
+        - staticcheck
+      text: "SA9003:"
+    - linters:
+        - lll
+      source: "^//go:generate "
+  exclude:
+    - 'Error return value of .((os\.)?std(out|err)\..*|.*Close|.*Flush|os\.Remove(All)?|.*print.*|os\.(Un)?Setenv). is not checked'
+    - "should have a package comment, unless it's in another file for this package"
+  max-issues-per-linter: 0
+  max-same-issues: 0
 
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/banzaicloud/koperator
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
