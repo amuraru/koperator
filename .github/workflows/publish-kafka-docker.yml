@@ -13,8 +13,9 @@ env:
   # GitHub Container Registry
   GHCR_REGISTRY: ghcr.io
   # github.repository as <account>/<repo>
-  GHCR_IMAGE_NAME: ${{ github.repository }}/kafka
-  # Docker Hub image name
+  GHCR_KAFKA_IMAGE_NAME: ${{ github.repository }}/kafka
+  GHCR_JMX_IMAGE_NAME: ${{ github.repository }}/jmx_exporter
+  # Docker Hub image name (only for Kafka)
   DOCKERHUB_IMAGE: adobe/kafka
 
 jobs:
@@ -66,7 +67,7 @@ jobs:
         with:
           images: |
             ${{ env.DOCKERHUB_IMAGE }}
-            ${{ env.GHCR_REGISTRY }}/${{ env.GHCR_IMAGE_NAME }}
+            ${{ env.GHCR_REGISTRY }}/${{ env.GHCR_KAFKA_IMAGE_NAME }}
           tags: |
             type=match,pattern=kafka-(.*),group=1
           labels: |
@@ -84,3 +85,61 @@ jobs:
             VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
             BUILT_AT=${{ needs.prepare.outputs.built_at }}
             COMMIT=${{ github.sha }}
+
+  build-jmx-exporter:
+    runs-on: ubuntu-latest
+    needs: prepare
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Extract JMX exporter version from Dockerfile
+        id: jmx_version
+        run: |
+          JMX_VERSION=$(grep "ARG JMX_EXPORTER_VERSION=" docker/jmx_exporter/Dockerfile | cut -d'=' -f2 | cut -d' ' -f1)
+          echo "version=$JMX_VERSION" >> $GITHUB_OUTPUT
+      - name: Check if JMX exporter image already exists
+        id: image_exists
+        run: |
+          if curl -f -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "https://ghcr.io/v2/${{ github.repository }}/jmx_exporter/manifests/${{ steps.jmx_version.outputs.version }}" > /dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Image ghcr.io/${{ github.repository }}/jmx_exporter:${{ steps.jmx_version.outputs.version }} already exists, skipping build"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Image ghcr.io/${{ github.repository }}/jmx_exporter:${{ steps.jmx_version.outputs.version }} does not exist, will build"
+          fi
+      - name: Log into GitHub Container Registry ${{ env.GHCR_REGISTRY }}
+        if: startsWith(github.ref, 'refs/tags/') && steps.image_exists.outputs.exists == 'false'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.GHCR_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract Docker metadata for JMX exporter
+        if: steps.image_exists.outputs.exists == 'false'
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.GHCR_REGISTRY }}/${{ env.GHCR_JMX_IMAGE_NAME }}
+          tags: |
+            type=raw,value=${{ steps.jmx_version.outputs.version }}
+          labels: |
+            org.opencontainers.image.description=Prometheus JMX Exporter for Kafka monitoring
+      - name: Build and push JMX exporter image
+        if: startsWith(github.ref, 'refs/tags/') && steps.image_exists.outputs.exists == 'false'
+        uses: docker/build-push-action@v6
+        with:
+          context: docker/jmx_exporter
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          annotations: ${{ steps.meta.outputs.annotations }}
