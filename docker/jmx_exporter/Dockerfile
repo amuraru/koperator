@@ -18,7 +18,10 @@ RUN mvn -B -Dmaven.javadoc.skip=true -Dskip.javadoc=true \
     -Dmaven.compiler.source=21 -Dmaven.compiler.target=21 -Dmaven.compiler.release=21 \
     clean package -pl jmx_prometheus_javaagent -am
 
-FROM scratch
+FROM alpine:latest
 ARG JMX_EXPORTER_VERSION
+
+# Install basic utilities needed for init containers
+RUN apk add --no-cache coreutils
 
 COPY --from=build /src/jmx_prometheus_javaagent/target/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar /jmx_prometheus_javaagent.jar
