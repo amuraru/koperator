@@ -68,12 +68,20 @@ func (r *Reconciler) configMap(clientPass string, capacityConfig string, log log
 		log.Error(err, fmt.Sprintf("setting '%s' in Cruise Control configuration failed", kafkautils.KafkaConfigBoostrapServers), "config", bootstrapServers)
 	}
 
-	if r.KafkaCluster.Spec.KRaftMode {
-		// Set configurations to have Cruise Control to run without Zookeeper
+	// The Admin provider also works with ZooKeeper-backed Kafka clusters.
+	topicConfigProvider, _ := ccConfig.Get(kafkautils.CruiseControlConfigTopicConfigProviderClass)
+	usesLegacyTopicConfigProvider := topicConfigProvider.Value() == "com.linkedin.kafka.cruisecontrol.config.KafkaTopicConfigProvider"
+	if r.KafkaCluster.Spec.KRaftMode || usesLegacyTopicConfigProvider {
 		if err = ccConfig.Set(kafkautils.CruiseControlConfigTopicConfigProviderClass, kafkautils.CruiseControlConfigTopicConfigProviderClassVal); err != nil {
 			log.Error(err, fmt.Sprintf("setting '%s' in Cruise Control configuration failed", kafkautils.CruiseControlConfigTopicConfigProviderClass), "config", kafkautils.CruiseControlConfigTopicConfigProviderClassVal)
+		} else if usesLegacyTopicConfigProvider {
+			log.V(warnLevel).Info("WARNING: automatically replacing deprecated Cruise Control topic config provider; update cruiseControlConfig.config",
+				"configuredProvider", topicConfigProvider.Value(),
+				"replacementProvider", kafkautils.CruiseControlConfigTopicConfigProviderClassVal)
 		}
+	}
 
+	if r.KafkaCluster.Spec.KRaftMode {
 		if err = ccConfig.Set(kafkautils.CruiseControlConfigKafkaBrokerFailureDetectionEnable, kafkautils.CruiseControlConfigKafkaBrokerFailureDetectionEnableVal); err != nil {
 			log.Error(err, fmt.Sprintf("setting '%s' in Cruise Control configuration failed", kafkautils.CruiseControlConfigKafkaBrokerFailureDetectionEnable), "config", kafkautils.CruiseControlConfigKafkaBrokerFailureDetectionEnableVal)
 		}
@@ -92,6 +100,7 @@ func (r *Reconciler) configMap(clientPass string, capacityConfig string, log log
 	}
 
 	ccConfig.Sort()
+	log4jConfig := r.KafkaCluster.Spec.CruiseControlConfig.GetCCLog4jConfig()
 
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: templates.ObjectMeta(
@@ -103,7 +112,9 @@ func (r *Reconciler) configMap(clientPass string, capacityConfig string, log log
 			"cruisecontrol.properties": ccConfig.String(),
 			"capacity.json":            capacityConfig,
 			"clusterConfigs.json":      r.KafkaCluster.Spec.CruiseControlConfig.ClusterConfig,
-			"log4j.properties":         r.KafkaCluster.Spec.CruiseControlConfig.GetCCLog4jConfig(),
+			// Older Cruise Control images still read the legacy filename.
+			"log4j.properties":  log4jConfig,
+			"log4j2.properties": log4jConfig,
 		},
 	}
 	return configMap
